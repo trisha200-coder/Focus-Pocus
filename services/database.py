@@ -1,26 +1,44 @@
+"""Focus Pocus database service.
+
+All database operations go through the Express backend.
+Supabase credentials must remain on the backend.
+"""
+
 import os
 import requests
 
 API_URL = os.getenv(
     "FOCUS_POCUS_API_URL",
-    "http://localhost:3000"
+    "http://localhost:3000",
 ).rstrip("/")
+
+TIMEOUT = 15
 
 
 class DatabaseAPIError(Exception):
-    """Raised when the database API request fails."""
+    """Raised when a backend request fails."""
 
 
 def _request(method, path, **kwargs):
+    """Send a request to the Express backend."""
     try:
         response = requests.request(
             method,
             f"{API_URL}{path}",
-            timeout=15,
+            timeout=TIMEOUT,
             **kwargs,
         )
         response.raise_for_status()
-        return response.json() if response.content else {}
+
+        if not response.content:
+            return {}
+
+        try:
+            return response.json()
+        except ValueError as error:
+            raise DatabaseAPIError(
+                "The backend returned an invalid response."
+            ) from error
 
     except requests.RequestException as error:
         message = "Could not communicate with the Focus-Pocus backend."
@@ -28,7 +46,7 @@ def _request(method, path, **kwargs):
         if error.response is not None:
             try:
                 message = error.response.json().get("error", message)
-            except ValueError:
+            except (ValueError, AttributeError):
                 pass
 
         raise DatabaseAPIError(message) from error
@@ -47,6 +65,11 @@ def add_subject(name):
     if not name:
         raise DatabaseAPIError("Please enter a subject name.")
 
+    if len(name) > 100:
+        raise DatabaseAPIError(
+            "Subject name must contain no more than 100 characters."
+        )
+
     result = _request(
         "POST",
         "/api/subjects",
@@ -57,14 +80,20 @@ def add_subject(name):
 
 def delete_subject(subject_id):
     """Delete a subject through the Express backend."""
-    result = _request(
-        "DELETE",
-        f"/api/subjects/{int(subject_id)}",
-    )
-    return result
+    try:
+        subject_id = int(subject_id)
+    except (TypeError, ValueError) as error:
+        raise DatabaseAPIError(
+            "Please provide a valid subject ID."
+        ) from error
+
+    if subject_id <= 0:
+        raise DatabaseAPIError("Please provide a valid subject ID.")
+
+    return _request("DELETE", f"/api/subjects/{subject_id}")
 
 
 def get_study_insights():
-    """Ask the backend for AI observations based on study records."""
+    """Fetch AI-generated study insights from the backend."""
     result = _request("GET", "/api/study/insights")
-    return result
+    return result.get("insights", result)
