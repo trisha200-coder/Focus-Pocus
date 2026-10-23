@@ -11,7 +11,7 @@ st.markdown(
     '<div class="fp-eyebrow">ONE THING AT A TIME</div>',
     unsafe_allow_html=True
 )
-
+st_autorefresh(interval=1000, key="focus_timer_refresh")
 st.title("Focus Timer")
 st.write(
     "You don't need a perfect session. "
