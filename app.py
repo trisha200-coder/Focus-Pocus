@@ -54,20 +54,20 @@ else:
 
 # Load the selected page
 if st.session_state.current_page == "Login":
-    from pages.login import show_login
-    show_login()
+    from pages.login import login_page
+login_page()
 
 elif st.session_state.current_page == "Dashboard":
-    from pages.dashboard import show_dashboard
-    show_dashboard()
+    from pages.dashboard import dashboard_page
+    dashboard_page()
 
 elif st.session_state.current_page == "Study Routine":
-    from pages.study_routine import show_study_routine
-    show_study_routine()
+    from pages.study_routine import study_routine_page
+    study_routine_page()
 
 elif st.session_state.current_page == "Focus Timer":
-    from pages.focus_timer import show_focus_timer
-    show_focus_timer()
+    from pages.focus_timer import focus_timer_page
+    focus_timer_page()
 
 
 
