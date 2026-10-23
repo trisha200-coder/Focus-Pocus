@@ -108,6 +108,11 @@ with center:
             st.session_state.authenticated = True
             st.session_state.current_page = "Dashboard"
 
+            # Reset and clear chat on every fresh login
+            st.session_state.chat = [
+                {"role": "assistant", "content": f"Hey {name.strip().split()[0]}! I'm your Focus Buddy ?? What are we studying today?"}
+            ]
+
             st.success("Welcome to Focus Pocus! ✨")
             st.rerun()
 

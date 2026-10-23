@@ -38,6 +38,7 @@ else:
     if st.sidebar.button("🚪 Logout", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.authenticated = False
+        st.session_state.chat = []
         st.rerun()
 
 pg.run()

@@ -5,7 +5,11 @@ from datetime import date, timedelta
 
 from services.state import minutes_today
 
-
+st.set_page_config(
+    page_title="Study Routine | Focus Pocus",
+    page_icon="📊",
+    layout="wide",
+)
 
 # ---------- PAGE STYLING ----------
 st.markdown(
