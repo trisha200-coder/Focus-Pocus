@@ -1,4 +1,3 @@
-
 import streamlit as st
 
 
@@ -97,27 +96,21 @@ with center:
             use_container_width=True
         )
 
-        if submitted:
+    if submitted:
         if not name.strip() or not email.strip() or not password:
             st.error("Please complete all fields.")
         elif "@" not in email or "." not in email.split("@")[-1]:
             st.error("Please enter a valid email address.")
         else:
-            # Demo login: save credentials to session state
             st.session_state.user_name = name.strip().split()[0]
             st.session_state.login_email = email.strip()
-            
-            # 1. Mark the user as logged in
             st.session_state.logged_in = True
             st.session_state.authenticated = True
-            
-            # 2. Tell app.py to switch to Dashboard
             st.session_state.current_page = "Dashboard"
 
             st.success("Welcome to Focus Pocus! ✨")
-            
-            # 3. Trigger an immediate rerun to load the Dashboard
             st.rerun()
+
     st.markdown(
         '<div class="login-footer">'
         'A gentle space to learn, grow, and try again.'
