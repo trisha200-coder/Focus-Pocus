@@ -1,6 +1,10 @@
 
 import streamlit as st
 from styles import apply_styles
+from state import initialize_state
+
+initialize_state()
+
 
 # Page configuration
 st.set_page_config(
