@@ -98,8 +98,7 @@ with main:
                     st.session_state.timer_end = None
                     st.session_state.timer_paused_remaining = None
 
-                    st.session_state.current_page = "Focus Timer"
-                    st.rerun()
+                    st.switch_page("pages/focus_timer.py")
 
                 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -160,8 +159,7 @@ with main:
         "View study routine →",
         use_container_width=True
     ):
-        st.session_state.current_page = "Study Routine"
-        st.rerun()
+        st.switch_page("pages/study_routine.py")
 
 
 # ---------- Right column ----------

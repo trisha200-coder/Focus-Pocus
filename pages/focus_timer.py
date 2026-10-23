@@ -1,4 +1,3 @@
-
 import streamlit as st
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
@@ -11,7 +10,6 @@ st.markdown(
     '<div class="fp-eyebrow">ONE THING AT A TIME</div>',
     unsafe_allow_html=True
 )
-st_autorefresh(interval=1000, key="focus_timer_refresh")
 st.title("Focus Timer")
 st.write(
     "You don't need a perfect session. "
@@ -49,7 +47,7 @@ with col2:
 
 
 # ---------- Live timer refresh ----------
-# Refresh the Streamlit page every second while running.
+# Refresh the Streamlit page every second ONLY while running.
 if st.session_state.timer_running:
     st_autorefresh(
         interval=1000,
@@ -120,59 +118,53 @@ with center:
     )
 
     st.markdown(
-        f'<p class="fp-muted">📘 '
-        f'{st.session_state.timer_subject} · '
-        f'{st.session_state.timer_duration} minute session</p>',
+        f'<p class="fp-muted">'
+        f'📘 {st.session_state.timer_subject} · '
+        f'{st.session_state.timer_duration} min session</p>',
         unsafe_allow_html=True
     )
 
     st.progress(progress)
 
-
-    # ---------- Session completed ----------
-    if (
-        st.session_state.timer_running
-        and seconds_left <= 0
-    ):
-        completed_subject = st.session_state.timer_subject
-        completed_minutes = int(
-            st.session_state.timer_duration
-        )
-
+    # ---------- Completed session ----------
+    if st.session_state.timer_running and seconds_left <= 0:
         award_session(
-            completed_subject,
-            completed_minutes
+            st.session_state.timer_subject,
+            int(st.session_state.timer_duration)
         )
 
         st.success(
-            f"🎉 Session complete! You earned "
-            f"{completed_minutes * 2} XP."
+            "Session complete! "
+            f"You earned {int(st.session_state.timer_duration) * 2} XP. "
+            "Take a short breath before your next task."
         )
 
-        st.balloons()
         st.rerun()
 
-
-    # ---------- Running ----------
+    # ---------- Running state ----------
     elif st.session_state.timer_running:
-        st.success(
-            "🌙 Focus mode is on. Keep going, one minute at a time."
-        )
-
         if st.button(
             "⏸ Pause session",
             use_container_width=True
         ):
-            st.session_state.timer_paused_remaining = seconds_left
+            st.session_state.timer_paused_remaining = (
+                seconds_left
+            )
             st.session_state.timer_running = False
             st.session_state.timer_end = None
             st.rerun()
 
+        if st.button(
+            "⏹ Stop and cancel",
+            use_container_width=True
+        ):
+            st.session_state.timer_running = False
+            st.session_state.timer_end = None
+            st.session_state.timer_paused_remaining = None
+            st.rerun()
 
-    # ---------- Paused ----------
+    # ---------- Paused state ----------
     elif st.session_state.timer_paused_remaining is not None:
-        st.warning("Your session is paused.")
-
         if st.button(
             "▶ Resume session",
             use_container_width=True
@@ -180,9 +172,7 @@ with center:
             st.session_state.timer_end = (
                 datetime.now()
                 + timedelta(
-                    seconds=int(
-                        st.session_state.timer_paused_remaining
-                    )
+                    seconds=st.session_state.timer_paused_remaining
                 )
             )
 
@@ -191,7 +181,7 @@ with center:
             st.rerun()
 
         if st.button(
-            "↻ Reset timer",
+            "↺ Reset timer",
             use_container_width=True
         ):
             st.session_state.timer_running = False

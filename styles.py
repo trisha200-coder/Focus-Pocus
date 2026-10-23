@@ -22,11 +22,6 @@ def apply_styles():
         border-right: 1px solid #2b243a;
     }
 
-    /* Hide default automatic Streamlit multi-page list */
-    [data-testid="stSidebarNav"] {
-        display: none !important;
-    }
-
     div[data-testid="stMetric"] {
         background: linear-gradient(145deg, #1c182a, #13111d);
         padding: 18px;
