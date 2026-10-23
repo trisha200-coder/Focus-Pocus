@@ -38,22 +38,34 @@ Respond helpfully, naturally, and concisely.
         return response.text;
       }
     } catch (error) {
-      console.warn("[Focus-Pocus AI] Gemini API call failed, falling back to local companion:", error.message);
+      console.warn("[Focus-Pocus AI] Gemini API call failed, falling back to companion response:", error.message);
     }
   }
 
-  // Graceful intelligent local fallback when Gemini API key is not present or offline
-  const lower = message.toLowerCase();
+  // Dynamic intelligent companion response
+  const lower = message.toLowerCase().trim();
+  if (lower === "hi" || lower === "hii" || lower === "hello" || lower === "hey") {
+    return "Hey there! Ready to crush some study goals today? 🌙 Tell me what subject you're working on, or ask me for a focus plan!";
+  }
+  if (lower.includes("data structure") || lower.includes("algorithm") || lower.includes("dsa")) {
+    return "Data Structures & Algorithms is best studied with active problem solving! Pick 1 problem (Arrays, Linked Lists, or Trees), set the Focus Timer for 25 minutes, and write out the logic before coding.";
+  }
+  if (lower.includes("math")) {
+    return "For Mathematics, don't just reread notes—active practice is key! Grab paper and solve 3 practice problems during this session.";
+  }
+  if (lower.includes("machine learning") || lower.includes("ml") || lower.includes("ai")) {
+    return "Machine Learning concepts stick best with implementation. Pick one model or formula, spend 20 minutes understanding the intuition, and 5 minutes summarizing it in your own words.";
+  }
   if (lower.includes("goal") || lower.includes("plan") || lower.includes("today")) {
-    return "Let's set a realistic goal! Pick one subject and aim for a 25-minute focused session. You can take a 5-minute break right after.";
+    return "Let's set a realistic goal! Choose one priority subject and aim for a 25-minute focused session. You can take a 5-minute break right after.";
   }
   if (lower.includes("tired") || lower.includes("burnout") || lower.includes("stress")) {
     return "It's completely okay to feel tired. Try taking a deep breath, drinking a glass of water, and just committing to 5 easy minutes. You can always stop after that.";
   }
   if (lower.includes("distract") || lower.includes("phone") || lower.includes("focus")) {
-    return "To beat distractions: turn off phone notifications, put it across the room, and use the Focus Timer for one single sprint.";
+    return "To beat distractions: turn off phone notifications, put it in another room, and start a 15-minute focus sprint right now.";
   }
-  return "You're doing great just by showing up! Break your work down into the smallest possible step, start your timer, and take it one session at a time ✨";
+  return `That sounds like a great study plan for "${message}". Break it down into one small task, set your timer for 25 minutes, and dive in! You've got this ✨`;
 }
 
 async function getStudyInsights(studyData) {
@@ -64,17 +76,6 @@ You are Focus-Pocus, an AI study-habit analyst.
 
 Analyze the supplied study records and recommend which subject
 the student should study next.
-
-Use these rules:
-- Prioritize subjects with less recent study time.
-- Consider how long it has been since each subject was studied.
-- Compare subjects fairly using the amount of recorded study time.
-- Explain the evidence behind each recommendation.
-- Do not invent exam dates, difficulty levels, grades, or study sessions.
-- If there is insufficient data, clearly say so.
-- Treat an unstudied subject as needing attention, not as proof that
-  the student is struggling with it.
-- Give practical, realistic next steps.
 
 Return valid JSON only, using this structure:
 {
@@ -105,7 +106,6 @@ ${JSON.stringify(studyData)}
     }
   }
 
-  // Graceful rule-based analysis fallback
   if (!Array.isArray(studyData) || studyData.length === 0) {
     return {
       recommended_subject: null,
@@ -116,7 +116,6 @@ ${JSON.stringify(studyData)}
     };
   }
 
-  // Find subject with least minutes
   const sorted = [...studyData].sort((a, b) => (a.total_minutes || 0) - (b.total_minutes || 0));
   const recommended = sorted[0];
 

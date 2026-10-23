@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import date, timedelta
 
 from services.state import minutes_today, achievements
+from services.ai import get_ai_response
 
 
 # ---------- Header ----------
@@ -251,39 +252,7 @@ with side:
             "content": prompt
         })
 
-        lower_prompt = prompt.lower()
-
-        if any(
-            word in lower_prompt
-            for word in ["goal", "plan", "today"]
-        ):
-            reply = goal_message
-
-        elif any(
-            word in lower_prompt
-            for word in ["tired", "overwhelmed", "stress"]
-        ):
-            reply = (
-                "Let's make it easier. Try just two minutes "
-                "of one small task. You can decide whether "
-                "to continue afterward."
-            )
-
-        elif any(
-            word in lower_prompt
-            for word in ["distract", "phone", "scroll"]
-        ):
-            reply = (
-                "Put your phone out of reach, close distracting "
-                "tabs, and try a 10-minute focus sprint."
-            )
-
-        else:
-            reply = (
-                f"Choose one small task and focus for "
-                f"{min(10, st.session_state.focus_minutes)} minutes. "
-                "Then check in with yourself."
-            )
+        reply = get_ai_response(prompt)
 
         st.session_state.chat.append({
             "role": "assistant",
