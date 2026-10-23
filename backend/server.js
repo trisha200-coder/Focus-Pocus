@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const supabase = require("./supabase");
-const { getStudyResponse } = require("./gemma");
+const { getStudyResponse, getStudyInsights } = require("./gemma");
 
 const app = express();
 
@@ -182,6 +182,116 @@ app.post("/api/study/check-out", requirePrototypeUser, async (req, res) => {
   } catch (error) {
     console.error("Check-out failed:", error.message);
     res.status(500).json({ error: "Could not end study session." });
+  }
+});
+
+
+// Delete a subject belonging to the prototype user.
+app.delete("/api/subjects/:id", requirePrototypeUser, async (req, res) => {
+  try {
+    const subjectId = Number(req.params.id);
+
+    if (!Number.isSafeInteger(subjectId) || subjectId <= 0) {
+      return res.status(400).json({ error: "Invalid subject ID." });
+    }
+
+    const { data, error } = await supabase
+      .from("subjects")
+      .delete()
+      .eq("id", subjectId)
+      .eq("user_id", req.userId)
+      .select("id, name")
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      return res.status(404).json({ error: "Subject not found." });
+    }
+
+    res.json({ deleted: data });
+  } catch (error) {
+    console.error("Deleting subject failed:", error.message);
+    res.status(500).json({
+      error: "Could not delete subject. It may have linked study sessions."
+    });
+  }
+});
+
+// Generate study insights from actual Supabase records.
+app.get("/api/study/insights", requirePrototypeUser, async (req, res) => {
+  try {
+    const { data: subjects, error: subjectsError } = await supabase
+      .from("subjects")
+      .select("id, name")
+      .eq("user_id", req.userId);
+
+    if (subjectsError) throw subjectsError;
+
+    const { data: sessions, error: sessionsError } = await supabase
+      .from("study_sessions")
+      .select("subject_id, check_in, check_out")
+      .eq("user_id", req.userId)
+      .not("check_out", "is", null)
+      .order("check_in", { ascending: false });
+
+    if (sessionsError) throw sessionsError;
+
+    const now = Date.now();
+    const summary = (subjects || []).map((subject) => {
+      const subjectSessions = (sessions || []).filter(
+        (session) => session.subject_id === subject.id
+      );
+
+      let totalMinutes = 0;
+
+      for (const session of subjectSessions) {
+        const start = new Date(session.check_in).getTime();
+        const end = new Date(session.check_out).getTime();
+
+        if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
+          totalMinutes += (end - start) / 60000;
+        }
+      }
+
+      const latest = subjectSessions
+        .map((session) => new Date(session.check_in).getTime())
+        .filter(Number.isFinite)
+        .sort((a, b) => b - a)[0];
+
+      return {
+        subject_id: subject.id,
+        subject: subject.name,
+        completed_sessions: subjectSessions.length,
+        total_minutes: Math.round(totalMinutes),
+        last_studied: latest ? new Date(latest).toISOString() : null,
+        days_since_last_studied: latest
+          ? Math.floor((now - latest) / 86400000)
+          : null
+      };
+    });
+
+    if (summary.length === 0) {
+      return res.json({
+        study_data: [],
+        insights: {
+          recommended_subject: null,
+          observations: ["Add a subject and record study sessions to receive personalized recommendations."],
+          reason: "There are no subjects in the database yet.",
+          suggested_minutes: 30,
+          next_steps: ["Add your subjects", "Record a study session"]
+        }
+      });
+    }
+
+    const insights = await getStudyInsights(summary);
+
+    res.json({ study_data: summary, insights });
+  } catch (error) {
+    console.error("Generating study insights failed:", error.message);
+    res.status(500).json({
+      error: "Could not generate study insights. Please try again."
+    });
   }
 });
 

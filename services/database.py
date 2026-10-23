@@ -1,19 +1,70 @@
-import streamlit as st
-from services.database import add_subject, get_subjects
-from services.database import DatabaseAPIError
+import os
+import requests
 
-subject_name = st.text_input("Enter subject name")
+API_URL = os.getenv(
+    "FOCUS_POCUS_API_URL",
+    "http://localhost:3000"
+).rstrip("/")
 
-if st.button("Add Subject"):
+
+class DatabaseAPIError(Exception):
+    """Raised when the database API request fails."""
+
+
+def _request(method, path, **kwargs):
     try:
-        subject = add_subject(subject_name)
-        st.success(f"Added {subject['name']} successfully!")
-        st.rerun()
-    except DatabaseAPIError as error:
-        st.error(str(error))
+        response = requests.request(
+            method,
+            f"{API_URL}{path}",
+            timeout=15,
+            **kwargs,
+        )
+        response.raise_for_status()
+        return response.json() if response.content else {}
 
-try:
-    subjects = get_subjects()
-    st.write("Your subjects:", subjects)
-except DatabaseAPIError as error:
-    st.error(str(error))
+    except requests.RequestException as error:
+        message = "Could not communicate with the Focus-Pocus backend."
+
+        if error.response is not None:
+            try:
+                message = error.response.json().get("error", message)
+            except ValueError:
+                pass
+
+        raise DatabaseAPIError(message) from error
+
+
+def get_subjects():
+    """Return the current prototype user's subjects."""
+    result = _request("GET", "/api/subjects")
+    return result.get("subjects", [])
+
+
+def add_subject(name):
+    """Add a subject through the Express backend."""
+    name = name.strip() if isinstance(name, str) else ""
+
+    if not name:
+        raise DatabaseAPIError("Please enter a subject name.")
+
+    result = _request(
+        "POST",
+        "/api/subjects",
+        json={"name": name},
+    )
+    return result.get("subject", {})
+
+
+def delete_subject(subject_id):
+    """Delete a subject through the Express backend."""
+    result = _request(
+        "DELETE",
+        f"/api/subjects/{int(subject_id)}",
+    )
+    return result
+
+
+def get_study_insights():
+    """Ask the backend for AI observations based on study records."""
+    result = _request("GET", "/api/study/insights")
+    return result
