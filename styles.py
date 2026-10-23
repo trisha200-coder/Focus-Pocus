@@ -1,4 +1,3 @@
-
 import streamlit as st
 
 
@@ -21,6 +20,11 @@ def apply_styles():
     [data-testid="stSidebar"] {
         background: #100e19;
         border-right: 1px solid #2b243a;
+    }
+
+    /* Hide default automatic Streamlit multi-page list */
+    [data-testid="stSidebarNav"] {
+        display: none !important;
     }
 
     div[data-testid="stMetric"] {

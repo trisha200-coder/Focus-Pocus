@@ -93,6 +93,25 @@ def delete_subject(subject_id):
     return _request("DELETE", f"/api/subjects/{subject_id}")
 
 
+def get_study_sessions():
+    """Fetch completed study sessions from the backend."""
+    try:
+        result = _request("GET", "/api/study/insights")
+        return result.get("study_data", [])
+    except Exception:
+        return []
+
+
+def check_in_session(subject_id):
+    """Start a new study session."""
+    return _request("POST", "/api/study/check-in", json={"subjectId": subject_id})
+
+
+def check_out_session(session_id):
+    """Complete an active study session."""
+    return _request("POST", "/api/study/check-out", json={"sessionId": session_id})
+
+
 def get_study_insights():
     """Fetch AI-generated study insights from the backend."""
     result = _request("GET", "/api/study/insights")

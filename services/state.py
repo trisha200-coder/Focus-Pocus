@@ -37,7 +37,7 @@ def initialize_state():
 
 def minutes_today():
     today_s = date.today().isoformat()
-    return sum(s["minutes"] for s in st.session_state.get("sessions", []) if s.get("date") == today_s)
+    return sum(s.get("minutes", 0) for s in st.session_state.get("sessions", []) if s.get("date") == today_s)
 
 def award_session(subject, minutes):
     today_s = date.today().isoformat()
@@ -64,12 +64,12 @@ def award_session(subject, minutes):
 
 def achievements():
     sessions = st.session_state.get("sessions", [])
-    total_mins = sum(s["minutes"] for s in sessions)
+    total_mins = sum(s.get("minutes", 0) for s in sessions)
     return [
-        ("🌱 First Focus", len(sessions) >= 1, "Complete your first session"),
-        ("⏳ Deep Work", total_mins >= 60, "Study for 60 minutes total"),
-        ("🔥 Five Sessions", len(sessions) >= 5, "Complete five sessions"),
-        ("⚡ 100 XP Club", st.session_state.get("xp", 0) >= 100, "Earn 100 XP"),
-        ("📚 Triple Threat", len(set(s["subject"] for s in sessions)) >= 3, "Study three different subjects"),
-        ("🌟 Master of Focus", st.session_state.get("streak", 0) >= 3, "Keep a 3-day study streak"),
+        ("🌱 First Focus", len(sessions) >= 1),
+        ("⏳ Deep Work", total_mins >= 60),
+        ("🔥 Five Sessions", len(sessions) >= 5),
+        ("⚡ 100 XP Club", st.session_state.get("xp", 0) >= 100),
+        ("📚 Triple Threat", len(set(s.get("subject") for s in sessions)) >= 3),
+        ("🌟 Master of Focus", st.session_state.get("streak", 0) >= 3),
     ]

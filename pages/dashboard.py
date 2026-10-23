@@ -325,7 +325,7 @@ with side:
 
     st.markdown("**Achievements**")
 
-    for name, unlocked in achievements():
+    for name, unlocked, *_ in achievements():
         if unlocked:
             st.write(f"🏅 {name}")
         else:

@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
 
 // Temporary single-user prototype.
 // Add verified authentication before deploying publicly.
-const PROTOTYPE_USER_ID = process.env.PROTOTYPE_USER_ID;
+const PROTOTYPE_USER_ID = process.env.PROTOTYPE_USER_ID || "demo-prototype-user";
 
 function requirePrototypeUser(req, res, next) {
   if (!PROTOTYPE_USER_ID) {
